@@ -12,6 +12,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Package mollie helps you connect your program to the Mollie iDEAL API.
 package mollie
 
 import (
@@ -91,6 +92,12 @@ func (resp *MollieResponse) IsCancelled() bool {
 	return resp.Order.Status == "Cancelled"
 }
 
+/*
+NewMollie creates the main Mollie struct.
+
+partnerId is the partnerId that you got from Mollie. If testmode is true the
+requests will be sent in testmode.
+*/
 func NewMollie(partnerId int, testmode bool) (*Mollie, error) {
 	baseurl, err := url.Parse("https://secure.mollie.nl/xml/ideal")
 	if err != nil {
@@ -105,10 +112,16 @@ func NewMollie(partnerId int, testmode bool) (*Mollie, error) {
 	return &Mollie{baseurl: baseurl, partnerId: partnerId, testmode: testmode}, nil
 }
 
+/*
+SetProfileKey allows you to set the optional profilekey.
+*/
 func (mollie *Mollie) SetProfileKey(key string) {
 	mollie.profileKey = key
 }
 
+/*
+BankList returns the banks that can be used right now.
+*/
 func (mollie *Mollie) BankList() (*BankResponse, error) {
 	u := *mollie.baseurl
 	q := u.Query()
@@ -134,6 +147,13 @@ func (mollie *Mollie) BankList() (*BankResponse, error) {
 	return &res, nil
 }
 
+/*
+Fetch creates a new transaction. This is the command that should be called
+after you recieve a bank_id from the client. Fetch requires multiple parameters
+that can be set in the request parameter.
+
+After Fetch you should redirect the client to URL in MollieResponse.
+*/
 func (mollie *Mollie) Fetch(request *FetchRequest) (*MollieResponse, error) {
 	u := *mollie.baseurl
 	q := u.Query()
@@ -164,6 +184,11 @@ func (mollie *Mollie) Fetch(request *FetchRequest) (*MollieResponse, error) {
 	return &res, nil
 }
 
+/*
+Check checks if the transaction is completed. It should be called when Mollie
+calls you report url. Pass the transactionId of the transaction that you want
+to check.
+*/
 func (mollie *Mollie) Check(transactionId string) (*MollieResponse, error) {
 	u := *mollie.baseurl
 	q := u.Query()
